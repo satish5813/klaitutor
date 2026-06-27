@@ -1,0 +1,81 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap');
+
+/* ===== KL Student theme (white + KL red) — matches the mobile app ===== */
+@theme {
+  --font-sans: "Sora", "Segoe UI", system-ui, -apple-system, sans-serif;
+
+  /* remap the indigo scale used across the app to KL red */
+  --color-indigo-50:  #fff0f2;
+  --color-indigo-100: #fde7ea;
+  --color-indigo-200: #fbd0d7;
+  --color-indigo-500: #e11d3c;
+  --color-indigo-600: #c8102e;  /* KL red accent */
+  --color-indigo-700: #a00d24;
+  --color-indigo-800: #850a1d;
+
+  /* soft warm neutrals */
+  --color-slate-50:  #fafafb;
+  --color-slate-100: #f5f3f7;  /* page bg */
+  --color-slate-200: #efeaf0;
+  --color-slate-300: #e4dde6;
+  --color-slate-800: #2b2530;
+  --color-slate-900: #1a1620;
+
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+}
+
+:root {
+  font-family: var(--font-sans);
+  color: #1b1b1b;
+}
+
+/* clean light page background with a faint KL-red tint */
+body {
+  margin: 0;
+  background:
+    radial-gradient(1100px 560px at 100% -10%, rgba(200,16,46,0.05), transparent 60%),
+    radial-gradient(800px 460px at -10% 110%, rgba(200,16,46,0.04), transparent 55%),
+    #f5f3f7;
+  background-attachment: fixed;
+  color: #1a1620;
+}
+
+/* soft cards with hairline border */
+.shadow {
+  box-shadow: 0 6px 20px rgba(120,40,60,0.06) !important;
+  border: 1px solid rgba(26,16,32,0.06);
+}
+.shadow-xl {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+/* Fluent inputs: smooth, with an accent underline on focus */
+input, select, textarea {
+  font-family: inherit;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+  background: #fbfbfb;
+}
+input:hover, select:hover, textarea:hover { background: #fff; }
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-indigo-600) !important;
+  box-shadow: inset 0 -2px 0 -1px var(--color-indigo-600);
+  background: #fff;
+}
+
+/* Fluent buttons: subtle lift + press */
+button {
+  font-family: inherit;
+  transition: filter .15s ease, transform .05s ease, background .15s ease, color .15s ease;
+}
+button:hover { filter: brightness(0.97); }
+button:active { transform: translateY(0.5px); }
+
+/* thin Fluent scrollbars */
+* { scrollbar-width: thin; scrollbar-color: #c7c7c7 transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: #c7c7c7; border-radius: 8px; border: 3px solid transparent; background-clip: content-box; }
+*::-webkit-scrollbar-thumb:hover { background: #a8a8a8; background-clip: content-box; }

@@ -1,0 +1,43 @@
+# === KL AI Tutor — frontend repo (web + student web app + Flutter mobile app) ===
+# The backend lives in a separate repo: satish5813/aitutorbacken
+/backend/
+/backend-mysql/
+/docs/
+
+# node / vite
+node_modules/
+dist/
+.vite/
+
+# flutter / android build output
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+**/android/.gradle/
+**/android/app/build/
+**/android/.kotlin/
+*.apk
+*.aab
+*.jks
+key.properties
+local.properties
+
+# env & secrets (keep the example)
+.env
+.env.*
+!.env.example
+
+# database dumps (contain user data + password hashes — never commit)
+*.sql
+tutoriq_dump.sql
+
+# local tooling / scratch
+.claude/
+_*.cjs
+_*.mjs
+
+# os / editor
+.DS_Store
+Thumbs.db
+*.log

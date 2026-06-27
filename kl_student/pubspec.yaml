@@ -1,0 +1,42 @@
+name: kl_student
+description: "KL Student — courses, sessions, reading & quizzes."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  webview_flutter: ^4.10.0
+  cupertino_icons: ^1.0.8
+  flutter_native_splash: ^2.4.1
+  url_launcher: ^6.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/www/
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/branding/icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/branding/icon_fg.png"
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: "assets/branding/splash.png"
+  android_12:
+    color: "#FFFFFF"
+    image: "assets/branding/splash.png"
+  android: true
+  ios: false

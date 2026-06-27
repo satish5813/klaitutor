@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="theme-color" content="#ffffff" />
+<title>KL Student</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- PDF rendering (works in Android WebView, unlike native PDF) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<!-- PPT rendering -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/meshesha/PPTXjs@master/css/pptxjs.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip-utils/0.1.0/jszip-utils.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@3.5.17/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/meshesha/PPTXjs@master/js/nv.d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/meshesha/PPTXjs@master/js/pptxjs.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/meshesha/PPTXjs@master/js/divs2slides.js"></script>
+<style>
+#pptx .slide{margin:0 auto 12px;border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.06)}
+#pptx{max-width:100%;overflow-x:auto}
+:root{--red:#c8102e;--red-d:#a00d24;--red-soft:#fff0f2;--red-mist:#fde7ea;--ink:#14101a;--ink2:#3d3744;--muted:#9a93a3;--line:#f1eef4;--bg:#fff;--bg2:#fafafb}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{font-family:"Sora","Segoe UI",system-ui,sans-serif;background:#e8e6ec;color:var(--ink);display:flex;align-items:center;justify-content:center;overflow:hidden;-webkit-font-smoothing:antialiased}
+#phone{position:relative;width:100%;max-width:430px;height:100dvh;max-height:932px;background:var(--bg);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.28)}
+@media(min-width:480px){#phone{border-radius:40px;height:94vh;border:11px solid #fff;outline:1px solid #e3e0e8}}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg);transform:translateX(100%);transition:transform .34s cubic-bezier(.32,.72,0,1);z-index:1}
+.screen.active{transform:translateX(0);z-index:2}
+.body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.body::-webkit-scrollbar{display:none}
+.wrap{padding:8px 20px 40px}
+.top{display:flex;align-items:center;gap:14px;padding:20px 20px 8px}
+.top .ttl{font-size:24px;font-weight:800;letter-spacing:-.5px;line-height:1.05}
+.top .sub{font-size:13px;color:var(--muted);font-weight:500}
+.iconbtn{width:42px;height:42px;border-radius:14px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:20px;display:grid;place-items:center;cursor:pointer;flex:none}
+.iconbtn:active{transform:scale(.92)}
+h3.sec{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.3px;margin:22px 2px 12px;text-transform:uppercase}
+.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:16px;margin-bottom:13px;cursor:pointer;transition:transform .14s,box-shadow .2s}
+.card:active{transform:scale(.985)}.card:hover{box-shadow:0 10px 28px rgba(24,12,24,.07)}
+.row{display:flex;align-items:center;gap:14px}
+.ic{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;font-size:22px;flex:none;background:var(--red-soft);color:var(--red)}
+.nm{font-weight:600;font-size:15.5px;letter-spacing:-.2px}.mt{font-size:12.5px;color:var(--muted);margin-top:3px}
+.chev{margin-left:auto;color:#d8d2de;font-size:22px}
+.btn{width:100%;padding:16px;border:none;border-radius:16px;background:var(--red);color:#fff;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 10px 24px rgba(200,16,46,.34);font-family:inherit}
+.btn:active{transform:translateY(1px)}
+.dhead{padding:18px 20px 6px}.dhead h1{font-size:22px;font-weight:800;letter-spacing:-.5px;margin:14px 0 0}.dhead p{margin:5px 0 0;color:var(--muted);font-size:13px}
+/* home: courses grouped by year */
+.seclbl{display:flex;align-items:center;gap:9px;margin:24px 2px 13px}
+.seclbl .yr{font-size:14px;font-weight:800;color:var(--ink);letter-spacing:-.2px}
+.seclbl .sm{font-size:11px;font-weight:700;color:var(--red);background:var(--red-soft);border:1px solid var(--red-mist);border-radius:8px;padding:3px 9px}
+.seclbl .ln{flex:1;height:1px;background:var(--line)}
+.ccard{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:13px;margin-bottom:11px;cursor:pointer;transition:transform .14s,box-shadow .2s}
+.ccard:active{transform:scale(.985)}.ccard:hover{box-shadow:0 12px 30px rgba(24,12,24,.09)}
+.cic{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:18px;font-weight:800;flex:none;letter-spacing:.5px}
+.cnm{font-weight:600;font-size:15px;letter-spacing:-.2px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.cmeta{font-size:11.5px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.codebadge{background:var(--bg2);border:1px solid var(--line);border-radius:7px;padding:2px 8px;font-weight:700;font-size:10.5px;color:var(--ink2);letter-spacing:.3px}
+/* course GRID cards */
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.gcard{background:#fff;border:1px solid var(--line);border-radius:20px;padding:15px 14px;cursor:pointer;transition:transform .14s,box-shadow .2s;display:flex;flex-direction:column;min-height:134px}
+.gcard:active{transform:scale(.97)}.gcard:hover{box-shadow:0 12px 30px rgba(24,12,24,.1)}
+.gic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:16px;font-weight:800;letter-spacing:.4px;margin-bottom:11px}
+.gnm{font-weight:600;font-size:13.5px;line-height:1.3;letter-spacing:-.1px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.gcount{margin-top:auto;padding-top:9px;font-size:11px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:5px}
+/* splash */
+#splash .sp{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff}
+#splash img{width:116px;height:116px;animation:pop .6s cubic-bezier(.2,.8,.2,1)}
+#splash .t{font-size:23px;font-weight:800;color:var(--red);margin-top:16px;letter-spacing:-.4px}
+#splash .s{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:2.5px;margin-top:3px}
+#splash .sp i{width:26px;height:26px;border:3px solid var(--red-mist);border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite;margin-top:26px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+/* year picker cards */
+.ycard{display:flex;align-items:center;gap:15px;background:#fff;border:1px solid var(--line);border-radius:22px;padding:16px;margin-bottom:13px;cursor:pointer;transition:transform .14s,box-shadow .2s}
+.ycard:active{transform:scale(.985)}.ycard:hover{box-shadow:0 12px 30px rgba(24,12,24,.1)}
+.yic{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;font-size:24px;font-weight:800;flex:none}
+.ynm{font-weight:700;font-size:17px;letter-spacing:-.3px}.ymt{font-size:12.5px;color:var(--muted);margin-top:3px}
+/* bottom nav */
+.bnav{position:absolute;left:0;right:0;bottom:0;height:62px;background:rgba(255,255,255,.93);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:none;z-index:6}
+.bnav b{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;font-family:inherit;font-size:10.5px;font-weight:600;color:var(--muted);cursor:pointer}
+.bnav b span{font-size:21px;line-height:1}.bnav b.on{color:var(--red)}
+#years .body,#home .body,#profile .body{padding-bottom:76px}
+/* login */
+#login{background:#fff}#login .body{display:flex;flex-direction:column;justify-content:center;padding:30px 28px}
+.brand{text-align:center;margin-bottom:26px}.brand .kt{font-size:42px;font-weight:800;color:var(--red);letter-spacing:1px}.brand .u{font-size:11px;letter-spacing:3px;color:var(--muted);font-weight:600;margin-top:4px}
+.brand img{height:58px}
+.welcome{font-size:26px;font-weight:800;letter-spacing:-.6px;margin:0 0 4px}.welsub{color:var(--muted);font-size:14px;margin:0 0 24px}
+.field{margin-bottom:13px}.field label{font-size:12px;font-weight:600;color:var(--muted);margin:0 0 7px 4px;display:block}
+.inp{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1.5px solid var(--line);border-radius:15px;padding:14px 15px}
+.inp:focus-within{border-color:var(--red);background:#fff}
+.inp span{font-size:17px;opacity:.7}.inp input{border:none;background:none;outline:none;font-size:15px;width:100%;font-family:inherit;color:var(--ink)}
+.hint{text-align:center;font-size:12px;color:var(--muted);margin-top:14px}.err{background:#fde9ea;color:#b4282d;border-radius:12px;padding:10px 13px;font-size:13px;margin-bottom:12px}
+.adv{font-size:12px;color:var(--red);text-align:center;margin-top:12px;cursor:pointer}
+.video{width:100%;aspect-ratio:16/9;border-radius:18px;overflow:hidden;background:#000;box-shadow:0 10px 26px rgba(0,0,0,.18)}
+.ytlink{display:block;text-align:center;margin-top:11px;font-size:13px;font-weight:700;color:var(--red);text-decoration:none}
+.video iframe{width:100%;height:100%;border:0}
+.reader{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;line-height:1.8;font-size:15px;margin-top:12px}
+.reader h3{color:var(--red-d);margin:.2em 0 .5em}.reader p{color:var(--ink2);margin:0 0 12px}
+.pdf{width:100%;height:62vh;border:1px solid var(--line);border-radius:18px}
+.imgv{width:100%;border-radius:18px;border:1px solid var(--line);display:block}
+.trans{background:#fff;border:1px solid var(--line);border-radius:20px;margin-top:12px;overflow:hidden}
+.thead{display:flex;align-items:center;gap:8px;padding:13px 14px 11px;font-weight:700;font-size:13px}
+.langsel{margin-left:auto;font-family:inherit;font-size:12px;font-weight:600;color:var(--red);background:var(--red-soft);border:1px solid var(--red-mist);border-radius:11px;padding:7px 9px;outline:none;max-width:150px}
+.listen{display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-size:13px;font-weight:700;color:#fff;background:var(--red);border:none;border-radius:12px;padding:8px 12px;cursor:pointer}
+.tlist{max-height:280px;overflow-y:auto;padding:0 6px 6px}
+.tline{display:flex;gap:11px;padding:10px 8px;border-radius:13px;cursor:pointer}.tline:hover{background:var(--bg2)}.tline.on{background:var(--red-soft)}
+.tstamp{font-size:12px;font-weight:700;color:var(--red);width:40px;flex:none}.ttext{font-size:13.5px;color:var(--ink2);line-height:1.55}
+/* quiz */
+.qprog{height:8px;border-radius:8px;background:var(--red-mist);overflow:hidden;margin-bottom:16px}.qprog>i{display:block;height:100%;background:var(--red)}
+.q{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:13px}.q .qt{font-weight:600;margin-bottom:13px;font-size:15px}
+.opt{display:flex;align-items:center;gap:11px;padding:13px 15px;border:1.6px solid var(--line);border-radius:15px;margin-bottom:9px;cursor:pointer;font-size:14.5px}
+.opt.sel{border-color:var(--red);background:var(--red-soft)}.opt.correct{border-color:#16a34a;background:#eafbf0;color:#15803d;font-weight:600}.opt.wrong{border-color:#dc2626;background:#fef0f0;color:#b91c1c}
+.opt .b{width:24px;height:24px;border-radius:50%;border:2px solid #ddd6e3;flex:none;display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--muted)}
+.opt.sel .b{border-color:var(--red);background:var(--red);color:#fff}.opt.correct .b{border-color:#16a34a;background:#16a34a;color:#fff}
+.scorecard{background:#fff;border:1px solid var(--line);border-radius:26px;padding:30px 22px;text-align:center;box-shadow:0 10px 28px rgba(24,12,24,.06);margin-bottom:14px}
+.sring{width:140px;height:140px;margin:4px auto 16px;position:relative}.sring svg{transform:rotate(-90deg)}.sring .n{position:absolute;inset:0;display:grid;place-items:center;font-size:34px;font-weight:800}
+.tabbar{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);height:60px;background:#fff;border-radius:22px;display:flex;z-index:30;box-shadow:0 14px 36px rgba(24,12,24,.16);border:1px solid var(--line);padding:0 8px;gap:2px}
+.tabbar button{border:none;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10.5px;color:var(--muted);cursor:pointer;font-family:inherit;width:90px}
+.tabbar .ic2{font-size:20px}.tabbar button.on{color:var(--red)}
+.center{display:grid;place-items:center;height:60vh;color:var(--muted);font-size:14px;text-align:center;padding:0 30px}
+.confetti{position:absolute;width:9px;height:14px;top:-20px;border-radius:2px;animation:fall linear forwards;z-index:40;pointer-events:none}
+@keyframes fall{to{transform:translateY(120vh) rotate(560deg);opacity:.15}}
+.fadeup{animation:fu .45s both}@keyframes fu{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div id="phone">
+  <!-- SPLASH -->
+  <section class="screen active" id="splash"><div class="sp"><img src="skill-logo.png" alt="KL Skill Development"/><div class="t">KL AI Tutor</div><div class="s">SKILL DEVELOPMENT</div><i></i></div></section>
+  <!-- LOGIN -->
+  <section class="screen" id="login">
+    <div class="body">
+      <div class="brand"><img src="kl-logo.png" alt="KL University"/><div class="u" style="margin-top:10px">AI TUTOR · SKILL DEVELOPMENT</div></div>
+      <h2 class="welcome">Welcome back</h2>
+      <p class="welsub">Sign in with your Reg ID or email.</p>
+      <div id="lerr"></div>
+      <div class="field"><label>Reg ID or Email</label><div class="inp"><span>👤</span><input id="lemail" value="student@kl.edu"/></div></div>
+      <div class="field"><label>Password</label><div class="inp"><span>🔒</span><input id="lpass" type="password" value="Student@123"/></div></div>
+      <div class="field" id="serverField" style="display:none"><label>Server URL</label><div class="inp"><span>🌐</span><input id="lserver"/></div></div>
+      <button class="btn" id="loginBtn" onclick="doLogin()">Sign in</button>
+      <div class="adv" onclick="document.getElementById('serverField').style.display='block'">⚙ Advanced: change server</div>
+      <div class="hint">KL University · Skill Development Division</div>
+    </div>
+  </section>
+  <!-- YEARS (Home tab) -->
+  <section class="screen" id="years">
+    <div class="top"><img src="skill-logo.png" alt="" style="width:40px;height:40px;border-radius:12px;margin-right:11px;flex:none"/><div style="flex:1"><div class="sub">Welcome back,</div><div class="ttl" id="hname">Student</div></div></div>
+    <div class="body"><div class="wrap" id="yearsBody"></div></div>
+  </section>
+  <!-- YEAR detail -->
+  <section class="screen" id="year">
+    <div class="dhead"><button class="iconbtn" onclick="pop()">‹</button><h1 id="yTitle">Year</h1><p id="ySub"></p></div>
+    <div class="body"><div class="wrap" id="yearBody"></div></div>
+  </section>
+  <!-- ALL COURSES (Courses tab) -->
+  <section class="screen" id="home">
+    <div class="dhead"><h1 style="margin-top:6px">All courses</h1><p>Browse by year and semester</p></div>
+    <div class="body"><div class="wrap" id="homeBody"></div></div>
+  </section>
+  <!-- PROFILE tab -->
+  <section class="screen" id="profile">
+    <div class="dhead"><h1 style="margin-top:6px">Profile</h1><p>Your account</p></div>
+    <div class="body"><div class="wrap" id="profileBody"></div></div>
+  </section>
+  <!-- COURSE -->
+  <section class="screen" id="course">
+    <div class="dhead"><button class="iconbtn" onclick="pop()">‹</button><h1 id="cTitle">Course</h1><p id="cSub"></p></div>
+    <div class="body"><div class="wrap" id="courseBody"></div></div>
+  </section>
+  <!-- SESSION -->
+  <section class="screen" id="session">
+    <div class="dhead"><button class="iconbtn" onclick="pop()">‹</button><h1 id="sTitle">Session</h1><p id="sSub"></p></div>
+    <div class="body"><div class="wrap" id="sessionBody"></div></div>
+  </section>
+  <!-- VIEWER -->
+  <section class="screen" id="viewer">
+    <div class="dhead"><button class="iconbtn" onclick="pop()">‹</button><h1 id="vTitle">Content</h1><p id="vSub"></p></div>
+    <div class="body"><div class="wrap" id="viewerBody"></div></div>
+  </section>
+  <!-- BOTTOM NAV -->
+  <nav class="bnav" id="bnav">
+    <b data-tab="years" onclick="goTab('years')"><span>🏠</span>Home</b>
+    <b data-tab="home" onclick="goTab('home')"><span>📚</span>Courses</b>
+    <b data-tab="profile" onclick="goTab('profile')"><span>👤</span>Profile</b>
+  </nav>
+</div>
+<script>
+/* ===== config / api ===== */
+const DEFAULT_SERVER = 'http://cslb1vf6s48f99qk99x5a8b1.187.127.135.148.sslip.io';
+function server(){ return localStorage.getItem('tq_server') || DEFAULT_SERVER }
+function token(){ return localStorage.getItem('tq_token') || '' }
+async function api(path, opts={}){
+  const headers = Object.assign({}, opts.headers||{});
+  if(token()) headers.Authorization = 'Bearer '+token();
+  if(opts.json){ headers['Content-Type']='application/json'; opts.body=JSON.stringify(opts.json); delete opts.json; }
+  const res = await fetch(server()+'/api'+path, {...opts, headers});
+  const data = await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(data.error || ('Error '+res.status));
+  return data;
+}
+async function fileBlobUrl(contentId){
+  const res = await fetch(server()+'/api/contents/'+contentId+'/file', {headers:{Authorization:'Bearer '+token()}});
+  if(!res.ok) throw new Error('file error');
+  return URL.createObjectURL(await res.blob());
+}
+/* ===== nav ===== */
+const stack=[]; const TABS=['years','home','profile'];
+function show(id,push=true){ if(window.speechSynthesis)speechSynthesis.cancel();
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active'); if(push)stack.push(id);
+  const nav=document.getElementById('bnav');
+  if(TABS.includes(id)){ nav.style.display='flex'; nav.querySelectorAll('b').forEach(x=>x.classList.toggle('on',x.dataset.tab===id)); }
+  else nav.style.display='none';
+  document.querySelector('#'+id+' .body')?.scrollTo(0,0) }
+function pop(){ if(stack.length>1){stack.pop();show(stack[stack.length-1],false)} }
+function goTab(id){ stack.length=0; show(id); if(id==='years')loadYears(); else if(id==='home')loadHome(); else loadProfile(); }
+/* ===== login ===== */
+document.getElementById('lserver').value = server();
+async function doLogin(){
+  const email=document.getElementById('lemail').value.trim();
+  const password=document.getElementById('lpass').value;
+  const srv=document.getElementById('lserver').value.trim(); if(srv) localStorage.setItem('tq_server', srv.replace(/\/$/,''));
+  document.getElementById('lerr').innerHTML=''; document.getElementById('loginBtn').textContent='Signing in…';
+  try{
+    const d = await api('/auth/login', {method:'POST', json:{email,password}});
+    localStorage.setItem('tq_token', d.token); localStorage.setItem('tq_name', d.user.name);
+    document.getElementById('hname').textContent = d.user.name; window._courses=null;
+    stack.length=0; show('years'); loadYears();
+  }catch(e){ document.getElementById('lerr').innerHTML='<div class="err">'+e.message+'</div>'; }
+  document.getElementById('loginBtn').textContent='Sign in';
+}
+function logout(){ localStorage.removeItem('tq_token'); window._courses=null; stack.length=0; show('login'); }
+/* ===== courses data + shared card renderer ===== */
+const CCOL=[['#fff0f2','#c8102e'],['#eaf1ff','#2563eb'],['#e7f8ee','#15a34a'],['#fff5e3','#d97706'],['#f1ecff','#7c3aed'],['#e4f8f7','#0891b2'],['#fdeef6','#db2777']];
+async function courses(){
+  // show ALL enrolled courses (content-only filter disabled for now)
+  if(!window._courses){
+    window._courses = await api('/student/courses');
+    // API returns year/sem as strings ("1") — coerce to numbers so grouping/compare work
+    window._courses.forEach(c=>{ c.year=Number(c.year)||0; c.sem=Number(c.sem)||0; });
+  }
+  return window._courses;
+}
+function courseCards(list){
+  return '<div class="cgrid">'+list.map(c=>{
+    const col=CCOL[c.id%CCOL.length];
+    const abbr=(((c.code||c.title||'C').replace(/[^A-Za-z]/g,''))||'C').slice(0,2).toUpperCase();
+    const n=c.material_count||0;
+    return `<div class="gcard fadeup" onclick="openCourse(${c.id})"><div class="gic" style="background:${col[0]};color:${col[1]}">${abbr}</div>
+      <div class="gnm">${c.title}</div>
+      <div class="gcount">📚 ${n} item${n===1?'':'s'}</div></div>`;
+  }).join('')+'</div>';
+}
+/* HOME tab: pick a year */
+async function loadYears(){
+  const b=document.getElementById('yearsBody'); b.innerHTML='<div class="center">Loading…</div>';
+  try{
+    const list=await courses();
+    if(!list.length){ b.innerHTML='<div class="center">No courses assigned yet.</div>'; return; }
+    const ym={}; list.forEach(c=>{const y=c.year||0;(ym[y]=ym[y]||[]).push(c)});
+    const keys=Object.keys(ym).map(Number).sort((a,b)=>a-b);
+    b.innerHTML='<h3 class="sec">Select your year</h3>'+keys.map((y,i)=>{
+      const col=CCOL[i%CCOL.length], n=ym[y].length;
+      return `<div class="ycard fadeup" onclick="openYear(${y})"><div class="yic" style="background:${col[0]};color:${col[1]}">${y||'•'}</div>
+        <div style="flex:1"><div class="ynm">${y?'Year '+y:'Other courses'}</div><div class="ymt">${n} course${n>1?'s':''}</div></div><span class="chev">›</span></div>`;
+    }).join('');
+  }catch(e){ b.innerHTML='<div class="center">Could not load.<br>'+e.message+'</div>'; }
+}
+/* YEAR detail: courses split by semester (odd/even) */
+function openYear(y){
+  const list=(window._courses||[]).filter(c=>(c.year||0)===y);
+  document.getElementById('yTitle').textContent=y?'Year '+y:'Other courses';
+  document.getElementById('ySub').textContent=list.length+' course'+(list.length>1?'s':'');
+  const sm={}; list.forEach(c=>{const s=c.sem||0;(sm[s]=sm[s]||[]).push(c)});
+  const skeys=Object.keys(sm).map(Number).sort((a,b)=>a-b);
+  document.getElementById('yearBody').innerHTML=skeys.map(s=>{
+    const head=`<div class="seclbl"><span class="yr">${s?'Semester '+s:'Courses'}</span>${s?'<span class="sm">'+(s%2?'Odd':'Even')+'</span>':''}<span class="ln"></span></div>`;
+    return head+courseCards(sm[s]);
+  }).join('');
+  show('year');
+}
+/* COURSES tab: everything grouped by year · semester */
+async function loadHome(){
+  const b=document.getElementById('homeBody'); b.innerHTML='<div class="center">Loading…</div>';
+  try{
+    const list=await courses();
+    if(!list.length){ b.innerHTML='<div class="center">No courses assigned yet.</div>'; return; }
+    const groups=[], idx={};
+    list.forEach(c=>{ const key=(c.year||99)*10+(c.sem||0); if(idx[key]===undefined){idx[key]=groups.length;groups.push({key,year:c.year,sem:c.sem,items:[]});} groups[idx[key]].items.push(c); });
+    groups.sort((a,b)=>a.key-b.key);
+    b.innerHTML=groups.map(g=>{
+      const yl=g.year?'Year '+g.year:'Other courses';
+      return `<div class="seclbl"><span class="yr">${yl}</span>${g.sem?'<span class="sm">Semester '+g.sem+'</span>':''}<span class="ln"></span></div>`+courseCards(g.items);
+    }).join('');
+  }catch(e){ b.innerHTML='<div class="center">Could not load.<br>'+e.message+'</div>'; }
+}
+/* PROFILE tab */
+function loadProfile(){
+  const name=localStorage.getItem('tq_name')||'Student';
+  const ab=name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  document.getElementById('profileBody').innerHTML=
+    `<div style="text-align:center;padding:18px 0 6px"><div style="width:88px;height:88px;border-radius:50%;background:var(--red-soft);color:var(--red);display:grid;place-items:center;font-size:30px;font-weight:800;margin:0 auto 12px">${ab}</div>
+      <div style="font-size:20px;font-weight:800">${name}</div><div style="color:var(--muted);font-size:13px;margin-top:2px">Student</div></div>
+     <button class="btn" style="margin-top:22px;background:#fff;color:var(--red);border:1.5px solid var(--red-mist);box-shadow:none" onclick="logout()">⏻ Sign out</button>
+     <div class="hint" style="margin-top:18px">KL University · Skill Development Division</div>`;
+}
+/* ===== course: sessions ===== */
+let curCourse=null;
+async function openCourse(id){
+  curCourse=id;
+  const _c=(window._courses||[]).find(x=>x.id===id)||{};
+  document.getElementById('cTitle').textContent=_c.title||'Course';
+  document.getElementById('cSub').textContent=(_c.code?_c.code+' · ':'')+'Sessions';
+  const b=document.getElementById('courseBody'); b.innerHTML='<div class="center">Loading…</div>'; show('course');
+  try{
+    const sessions = await api('/student/courses/'+id+'/sessions');
+    window._sessions = sessions;
+    if(!sessions.length){ b.innerHTML='<div class="center">No sessions yet.</div>'; return; }
+    b.innerHTML='<h3 class="sec">Sessions</h3>'+sessions.map((s,i)=>`
+      <div class="card fadeup" onclick="openSession(${i})">
+        <div class="row"><div class="ic" style="font-weight:800">${i+1}</div>
+        <div style="flex:1"><div class="nm">${s.title}</div><div class="mt">${(s.contents||[]).length} materials</div></div>
+        <span class="chev">›</span></div></div>`).join('');
+  }catch(e){ b.innerHTML='<div class="center">'+e.message+'</div>'; }
+}
+/* ===== session: content list ===== */
+const TYPE_META={youtube:['🎬','Video lecture'],pdf:['📄','Report (PDF)'],ppt:['📊','Slides (PPT)'],infographic:['🖼️','Infographic'],quiz:['🏆','Quiz'],csv:['🗒️','Data'],notes:['📝','Notes'],mindmap:['🧠','Mind map']};
+let curSession=null;
+function openSession(i){
+  curSession=window._sessions[i];
+  document.getElementById('sTitle').textContent=curSession.title;
+  document.getElementById('sSub').textContent='Learning materials';
+  const items=(curSession.contents||[]);
+  document.getElementById('sessionBody').innerHTML = '<h3 class="sec">Materials</h3>'+ (items.length? items.map((c,j)=>{
+    const m=TYPE_META[c.type]||['📦',c.type];
+    return `<div class="card fadeup" onclick="openContent(${j})"><div class="row"><div class="ic">${m[0]}</div>
+      <div style="flex:1"><div class="nm">${c.title||m[1]}</div><div class="mt">${m[1]}</div></div><span class="chev">›</span></div></div>`;
+  }).join('') : '<div class="center">No materials.</div>');
+  show('session');
+}
+/* ===== content viewer ===== */
+const ytId=(u)=>{u=(u||'').trim();return u.match(/(?:youtu\.be\/|\/embed\/|\/shorts\/|\/live\/|[?&]v=)([A-Za-z0-9_-]{11})/)?.[1] || (u.match(/^[A-Za-z0-9_-]{11}$/)?u:null);};
+async function openContent(j){
+  const c=(curSession.contents||[])[j];
+  document.getElementById('vTitle').textContent=c.title||TYPE_META[c.type]?.[1]||c.type;
+  document.getElementById('vSub').textContent=curSession.title;
+  const v=document.getElementById('viewerBody'); v.innerHTML='<div class="center">Loading…</div>'; show('viewer');
+  try{
+    if(c.type==='youtube') v.innerHTML=videoView(c);
+    else if(c.type==='infographic'){ const u=await fileBlobUrl(c.id); v.innerHTML='<img class="imgv fadeup" src="'+u+'">'; }
+    else if(c.type==='pdf'){ v.innerHTML='<div id="pdfwrap" class="fadeup"></div>'+docBlock(c); await renderPdf(c.id, document.getElementById('pdfwrap')); }
+    else if(c.type==='ppt'){ await renderPpt(c, v); }
+    else if(c.type==='csv'){ const u=await fileBlobUrl(c.id); v.innerHTML='<div class="center">Data file.<br><br><a class="btn" style="text-decoration:none;display:inline-block;width:auto;padding:14px 22px" href="'+u+'" download="'+(c.title||'file.csv')+'">⬇ Download</a></div>'; }
+    else if(c.type==='notes') v.innerHTML=docBlock(c) || '<div class="center">No notes.</div>';
+    else if(c.type==='quiz') v.innerHTML=quizView(c);
+    else v.innerHTML='<div class="center">Unsupported content.</div>';
+    if(c.type!=='quiz') markProgress(c.id);   // mark accessed/completed
+  }catch(e){ v.innerHTML='<div class="center">'+e.message+'</div>'; }
+}
+function markProgress(id){ api('/progress',{method:'POST',json:{content_id:id,completed:1}}).catch(()=>{}); }
+
+/* render a PDF (ArrayBuffer) as page-images (works in Android WebView) */
+async function renderPdfBuffer(buf, container){
+  if(!window.pdfjsLib) throw new Error('pdf engine not loaded');
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  container.innerHTML='';
+  const W=container.clientWidth||360;
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const scale=W/page.getViewport({scale:1}).width;
+    const vp=page.getViewport({scale});
+    const cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;
+    cv.style.cssText='width:100%;border:1px solid #f1eef4;border-radius:12px;margin-bottom:10px;background:#fff';
+    container.appendChild(cv);
+    await page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;
+  }
+}
+async function renderPdf(contentId, container){
+  try{
+    const res=await fetch(server()+'/api/contents/'+contentId+'/file',{headers:{Authorization:'Bearer '+token()}});
+    if(!res.ok) throw new Error('fetch failed');
+    await renderPdfBuffer(await res.arrayBuffer(), container);
+  }catch(e){
+    const u=await fileBlobUrl(contentId);
+    container.innerHTML='<div class="center">Could not render inline.<br><br><a class="btn" style="text-decoration:none;display:inline-block;width:auto;padding:14px 22px" href="'+u+'" download="report.pdf">⬇ Download PDF</a></div>';
+  }
+}
+
+/* render PPT by converting to PDF on the server (LibreOffice) then drawing with PDF.js */
+async function renderPpt(c, v){
+  v.innerHTML='<div class="center" id="pptmsg">📊 Converting slides…</div><div id="pptwrap" class="fadeup"></div>';
+  try{
+    const res=await fetch(server()+'/api/contents/'+c.id+'/as-pdf',{headers:{Authorization:'Bearer '+token()}});
+    if(!res.ok){ const j=await res.json().catch(()=>({})); throw new Error(j.error||('Error '+res.status)); }
+    const buf=await res.arrayBuffer();
+    const msg=document.getElementById('pptmsg'); if(msg) msg.remove();
+    await renderPdfBuffer(buf, document.getElementById('pptwrap'));
+  }catch(e){
+    const u=await fileBlobUrl(c.id);
+    v.innerHTML='<div class="center">Slides couldn’t be previewed here.<br><br><a class="btn" style="text-decoration:none;display:inline-block;width:auto;padding:14px 22px" href="'+u+'" download="'+(c.title||'slides.pptx')+'">⬇ Download slides</a></div>';
+  }
+}
+
+/* video + transcript */
+const LANGS=[['en','🌐 English'],['hi','हिन्दी'],['te','తెలుగు'],['ta','தமிழ்'],['kn','ಕನ್ನಡ'],['ml','മലയാളം'],['mr','मराठी'],['bn','বাংলা'],['gu','ગુજરાતી'],['ur','اردو'],['ar','العربية'],['es','Español'],['fr','Français'],['de','Deutsch'],['zh-CN','中文'],['ja','日本語'],['ru','Русский']];
+function fmt(s){const m=Math.floor(s/60);return m+':'+String(s%60).padStart(2,'0')}
+function videoView(c){
+  const tr = c.transcript? JSON.parse(c.transcript):null;
+  window._tr = tr; window._trCur=tr; window._trLang='en';
+  const vid = ytId(c.url);
+  if(!vid){
+    return '<div class="center">This video link looks invalid or unsupported.'+(c.url?'<br><br><a class="btn" style="text-decoration:none;display:inline-block;width:auto;padding:14px 22px" href="'+c.url+'" target="_blank" rel="noopener">▶ Open link</a>':'')+'</div>';
+  }
+  let html = '<div class="video fadeup"><iframe id="ytf" src="https://www.youtube.com/embed/'+vid+'?enablejsapi=1&rel=0&playsinline=1&origin='+encodeURIComponent(location.origin)+'" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>';
+  html += '<a class="ytlink" href="https://www.youtube.com/watch?v='+vid+'" target="_blank" rel="noopener">▶ Watch on YouTube if it doesn’t play here</a>';
+  if(tr){
+    html += '<div class="trans fadeup"><div class="thead">📝 Transcript'
+      +'<button class="listen" id="lbtr" data-lbl="🔊" onclick="speakTr()" style="margin-left:auto;padding:7px 11px">🔊</button>'
+      +'<select class="langsel" style="margin-left:8px" onchange="trLang(this.value)">'+LANGS.map(l=>`<option value="${l[0]}">${l[1]}</option>`).join('')+'</select></div>'
+      +'<div class="tlist" id="tlist">'+trLines(tr)+'</div></div>';
+  }
+  return html;
+}
+function trLines(lines){return lines.map(([t,x],i)=>`<div class="tline ${i===0?'on':''}" onclick="seekTo(${t},this)"><span class="tstamp">${fmt(t)}</span><span class="ttext">${x}</span></div>`).join('')}
+function seekTo(s,el){const f=document.getElementById('ytf'); if(f)f.contentWindow.postMessage('{"event":"command","func":"seekTo","args":['+s+',true]}','*'); document.querySelectorAll('.tline').forEach(x=>x.classList.remove('on')); if(el)el.classList.add('on');}
+async function trLang(code){const tl=document.getElementById('tlist');
+  if(code==='en'){window._trCur=window._tr;window._trLang='en';tl.innerHTML=trLines(window._tr);return}
+  tl.innerHTML='<div style="padding:20px;text-align:center;color:#9a93a3">🌐 Translating…</div>';
+  try{const r=await api('/translate',{method:'POST',json:{lang:code,texts:window._tr.map(l=>l[1])}});
+    const lines=window._tr.map((l,i)=>[l[0],r.texts[i]||l[1]]);window._trCur=lines;window._trLang=code;tl.innerHTML=trLines(lines);
+  }catch(e){tl.innerHTML='<div style="padding:20px;text-align:center;color:#c8102e">Translation failed</div>'}}
+function speakTr(){ speak('lbtr',(window._trCur||window._tr).map(l=>l[1]).join('. '),window._trLang||'en'); }
+
+/* report/notes doc block with translate + listen */
+function docBlock(c){
+  const txt = c.text_content; if(!txt) return '';
+  const id='doc'+c.id; window['_'+id]=txt.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  return '<div class="trans fadeup" style="margin-top:14px"><div class="thead">📄 Reading'
+    +'<button class="listen" id="lb'+id+'" data-lbl="🔊 Listen" onclick="speakDoc(\''+id+'\')" style="margin-left:auto">🔊 Listen</button>'
+    +'<select class="langsel" style="margin-left:8px" onchange="docLang(\''+id+'\',this.value)">'+LANGS.map(l=>`<option value="${l[0]}">${l[1]}</option>`).join('')+'</select></div>'
+    +'<div class="reader" id="'+id+'" style="margin:0;border:none;border-radius:0">'+window['_'+id].map(p=>'<p>'+p+'</p>').join('')+'</div></div>';
+}
+async function docLang(id,code){const el=document.getElementById(id);const orig=window['_'+id];window['_'+id+'_lang']=code;
+  if(code==='en'){el.innerHTML=orig.map(p=>'<p>'+p+'</p>').join('');window['_'+id+'_cur']=orig;return}
+  el.innerHTML='<p style="color:#9a93a3;text-align:center">🌐 Translating…</p>';
+  try{const r=await api('/translate',{method:'POST',json:{lang:code,texts:orig}});window['_'+id+'_cur']=r.texts;el.innerHTML=r.texts.map(p=>'<p>'+p+'</p>').join('');
+  }catch(e){el.innerHTML='<p style="color:#c8102e;text-align:center">Translation failed</p>'}}
+function speakDoc(id){speak('lb'+id,(window['_'+id+'_cur']||window['_'+id]).join('. '),window['_'+id+'_lang']||'en')}
+
+/* tts */
+function ttsLang(c){const m={hi:'hi-IN',te:'te-IN',ta:'ta-IN',kn:'kn-IN',ml:'ml-IN',mr:'mr-IN',bn:'bn-IN',gu:'gu-IN',ur:'ur-PK',ar:'ar-SA',es:'es-ES',fr:'fr-FR',de:'de-DE','zh-CN':'zh-CN',ja:'ja-JP',ru:'ru-RU',en:'en-US'};return m[c]||c}
+let _spk=null;
+function speak(btnId,text,lang){ if(!('speechSynthesis'in window))return;
+  const b=document.getElementById(btnId);
+  if(_spk===btnId){speechSynthesis.cancel();_spk=null;if(b)b.innerHTML=b.dataset.lbl;return}
+  speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang=ttsLang(lang);u.rate=.97;u.onend=()=>{_spk=null;if(b)b.innerHTML=b.dataset.lbl};
+  _spk=btnId;if(b)b.innerHTML=(b.dataset.lbl==='🔊')?'⏸':'⏸ Stop';speechSynthesis.speak(u);}
+
+/* quiz */
+let quizState=null, quizContentId=null;
+function quizView(c){ quizContentId=c.id; const qs=JSON.parse(c.quiz_json||'[]');
+  quizState={questions:qs,answers:Array(qs.length).fill(null),submitted:false}; return renderQuiz(); }
+function renderQuiz(){const{questions,answers,submitted}=quizState;const ans=answers.filter(a=>a!==null).length;
+  const top=submitted?scoreBlock():`<div class="qprog"><i style="width:${ans/questions.length*100}%"></i></div>`;
+  const body=questions.map((q,qi)=>`<div class="q"><div class="qt">${qi+1}. ${q.q}</div>${q.opts.map((o,oi)=>{let cls='opt';if(answers[qi]===oi)cls+=' sel';if(submitted){if(oi===q.a)cls='opt correct';else if(answers[qi]===oi)cls='opt wrong';}return `<div class="${cls}" ${submitted?'':`onclick="pick(${qi},${oi})"`}><span class="b">${String.fromCharCode(65+oi)}</span>${o}</div>`}).join('')}</div>`).join('');
+  return top+body+(submitted?'':`<button class="btn" onclick="submitQuiz()">Submit quiz</button>`);}
+function pick(qi,oi){quizState.answers[qi]=oi;document.getElementById('viewerBody').innerHTML=renderQuiz()}
+async function submitQuiz(){ if(quizState.answers.includes(null)){alert('Please answer all questions.');return}
+  quizState.submitted=true; const{questions,answers}=quizState; const correct=answers.filter((a,i)=>a===questions[i].a).length;
+  document.getElementById('viewerBody').innerHTML=renderQuiz();
+  if(correct/questions.length>=.5) confetti();
+  try{ await api('/quiz-attempts',{method:'POST',json:{content_id:quizContentId,score:correct,total:questions.length}});
+       await api('/progress',{method:'POST',json:{content_id:quizContentId,completed:1}}); }catch(e){}
+  document.querySelector('#viewer .body').scrollTo({top:0,behavior:'smooth'});}
+function scoreBlock(){const{questions,answers}=quizState;const correct=answers.filter((a,i)=>a===questions[i].a).length;const pct=Math.round(correct/questions.length*100);
+  const r=60,c=2*Math.PI*r,o=c*(1-pct/100);const msg=pct>=75?'Excellent! 🎉':pct>=50?'Good job 👍':'Keep practising 💪';
+  return `<div class="scorecard fadeup"><div class="sring"><svg width="140" height="140"><circle cx="70" cy="70" r="${r}" stroke="#fde7ea" stroke-width="13" fill="none"/><circle cx="70" cy="70" r="${r}" stroke="#c8102e" stroke-width="13" fill="none" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${o}"/></svg><div class="n">${pct}%</div></div>
+    <div style="font-size:20px;font-weight:800">${msg}</div><div style="color:#9a93a3;font-size:13px;margin-top:4px">${correct} of ${questions.length} correct</div>
+    <div style="margin-top:16px"><button class="btn" onclick='openContent2()'>Retake</button></div></div>`;}
+function openContent2(){ quizState.answers.fill(null);quizState.submitted=false;document.getElementById('viewerBody').innerHTML=renderQuiz(); }
+function confetti(){const cols=['#c8102e','#a00d24','#ffd24c','#16a34a','#2193b0'];for(let i=0;i<50;i++){const c=document.createElement('div');c.className='confetti';c.style.left=Math.random()*100+'%';c.style.background=cols[i%cols.length];c.style.animationDuration=(1.6+Math.random()*1.3)+'s';document.getElementById('phone').appendChild(c);setTimeout(()=>c.remove(),3200)}}
+
+/* splash screen, then route to home (if logged in) or login */
+setTimeout(()=>{
+  if(token()){ document.getElementById('hname').textContent=localStorage.getItem('tq_name')||'Student'; stack.length=0; show('years'); loadYears(); }
+  else { stack.length=0; show('login'); }
+}, 1500);
+</script>
+</body>
+</html>
