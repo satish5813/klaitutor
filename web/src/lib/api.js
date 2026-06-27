@@ -1,8 +1,14 @@
 // Local backend API client (replaces Supabase).
 // Default to the SAME host the page is served from, on port 4000 — so the portal
 // works whether opened via localhost or the PC's LAN IP (e.g. from a phone).
+// Use VITE_API_URL if set. Otherwise: localhost dev → local backend on :4000;
+// any other host (Vercel, etc.) → the deployed HTTPS backend. This makes the
+// hosted build work even if the env var wasn't configured.
+const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname)
 const BASE = import.meta.env.VITE_API_URL
-  || `${window.location.protocol}//${window.location.hostname}:4000/api`
+  || (isLocal
+    ? `${window.location.protocol}//${window.location.hostname}:4000/api`
+    : 'https://cslb1vf6s48f99qk99x5a8b1.187.127.135.148.sslip.io/api')
 
 const tokenKey = 'tutoriq_token'
 export const getToken = () => localStorage.getItem(tokenKey)
