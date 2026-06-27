@@ -414,7 +414,10 @@ function videoView(c){
   if(!vid){
     return '<div class="center">This video link looks invalid or unsupported.'+(c.url?'<br><br><a class="btn" style="text-decoration:none;display:inline-block;width:auto;padding:14px 22px" href="'+c.url+'" target="_blank" rel="noopener">▶ Open link</a>':'')+'</div>';
   }
-  let html = '<div class="video fadeup"><iframe id="ytf" src="https://www.youtube.com/embed/'+vid+'?enablejsapi=1&rel=0&playsinline=1&origin='+encodeURIComponent(location.origin)+'" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>';
+  // add ?origin only for real web origins — inside the APK the page is file://,
+  // and origin=file:// / null makes YouTube reject the player (error 153)
+  const og = (location.origin && location.origin.indexOf('http') === 0) ? '&origin=' + encodeURIComponent(location.origin) : '';
+  let html = '<div class="video fadeup"><iframe id="ytf" src="https://www.youtube.com/embed/'+vid+'?enablejsapi=1&rel=0&playsinline=1'+og+'" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>';
   html += '<a class="ytlink" href="https://www.youtube.com/watch?v='+vid+'" target="_blank" rel="noopener">▶ Watch on YouTube if it doesn’t play here</a>';
   if(tr){
     html += '<div class="trans fadeup"><div class="thead">📝 Transcript'
