@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void main() {
@@ -49,6 +50,7 @@ class _WebShellState extends State<WebShell> {
     super.initState();
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setUserAgent('Mozilla/5.0 (Linux; Android 12; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36')
       ..setBackgroundColor(const Color(0xFFFFFFFF))
       ..enableZoom(false)
       ..setNavigationDelegate(NavigationDelegate(
@@ -72,6 +74,10 @@ class _WebShellState extends State<WebShell> {
         },
       ))
       ..loadFlutterAsset('assets/www/index.html');
+    // let YouTube / HTML5 video play inline without requiring a programmatic gesture
+    if (_controller.platform is AndroidWebViewController) {
+      (_controller.platform as AndroidWebViewController).setMediaPlaybackRequiresUserGesture(false);
+    }
   }
 
   @override
