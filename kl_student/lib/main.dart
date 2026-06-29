@@ -4,6 +4,9 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+
+final navigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
   final binding = WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +26,7 @@ class KLStudentApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'KL Student',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -53,6 +57,14 @@ class _WebShellState extends State<WebShell> {
       ..setUserAgent('Mozilla/5.0 (Linux; Android 12; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36')
       ..setBackgroundColor(const Color(0xFFFFFFFF))
       ..enableZoom(false)
+      ..addJavaScriptChannel('PlayVideo', onMessageReceived: (msg) {
+        final id = msg.message.trim();
+        if (id.isNotEmpty) {
+          navigatorKey.currentState?.push(
+            MaterialPageRoute(builder: (_) => VideoPage(videoId: id)),
+          );
+        }
+      })
       ..setNavigationDelegate(NavigationDelegate(
         onPageFinished: (_) {
           setState(() => _loading = false);
@@ -95,6 +107,45 @@ class _WebShellState extends State<WebShell> {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Native in-app YouTube player screen (opened when a video is tapped).
+class VideoPage extends StatefulWidget {
+  final String videoId;
+  const VideoPage({super.key, required this.videoId});
+  @override
+  State<VideoPage> createState() => _VideoPageState();
+}
+
+class _VideoPageState extends State<VideoPage> {
+  late final YoutubePlayerController _yc = YoutubePlayerController.fromVideoId(
+    videoId: widget.videoId,
+    autoPlay: true,
+    params: const YoutubePlayerParams(showFullscreenButton: true),
+  );
+
+  @override
+  void dispose() {
+    _yc.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return YoutubePlayerScaffold(
+      controller: _yc,
+      aspectRatio: 16 / 9,
+      builder: (context, player) => Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: const Color(0xFFC8102E),
+          foregroundColor: Colors.white,
+          title: const Text('Video lecture'),
+        ),
+        body: Center(child: player),
       ),
     );
   }
