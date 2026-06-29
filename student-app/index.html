@@ -420,10 +420,11 @@ function videoView(c){
   }
   let html;
   if (window.PlayVideo && window.PlayVideo.postMessage) {
-    // inside the Flutter app → open the native in-app YouTube player (reliable playback)
-    html = '<div class="video ythumb fadeup" onclick="PlayVideo.postMessage(\''+vid+'\')">'
+    // inside the Flutter app → open the native player WITH the transcript
+    window._vpayload = JSON.stringify({id: vid, transcript: c.transcript || ''});
+    html = '<div class="video ythumb fadeup" onclick="PlayVideo.postMessage(window._vpayload)">'
       + '<img src="https://i.ytimg.com/vi/'+vid+'/hqdefault.jpg" alt=""><div class="ytplay">▶</div></div>'
-      + '<div class="ythint">Tap to play the lecture</div>';
+      + '<div class="ythint">Tap to play — video with transcript</div>';
   } else {
     // web → embedded iframe (origin only for real http origins; avoids error 153)
     const og = (location.origin && location.origin.indexOf('http') === 0) ? '&origin=' + encodeURIComponent(location.origin) : '';
