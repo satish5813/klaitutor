@@ -4,7 +4,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -121,23 +121,25 @@ class VideoPage extends StatefulWidget {
 }
 
 class _VideoPageState extends State<VideoPage> {
-  late final YoutubePlayerController _yc = YoutubePlayerController.fromVideoId(
-    videoId: widget.videoId,
-    autoPlay: true,
-    params: const YoutubePlayerParams(showFullscreenButton: true),
+  late final YoutubePlayerController _yc = YoutubePlayerController(
+    initialVideoId: widget.videoId,
+    flags: const YoutubePlayerFlags(autoPlay: true, mute: false),
   );
 
   @override
   void dispose() {
-    _yc.close();
+    _yc.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return YoutubePlayerScaffold(
-      controller: _yc,
-      aspectRatio: 16 / 9,
+    return YoutubePlayerBuilder(
+      player: YoutubePlayer(
+        controller: _yc,
+        showVideoProgressIndicator: true,
+        progressIndicatorColor: const Color(0xFFC8102E),
+      ),
       builder: (context, player) => Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
@@ -145,7 +147,7 @@ class _VideoPageState extends State<VideoPage> {
           foregroundColor: Colors.white,
           title: const Text('Video lecture'),
         ),
-        body: Center(child: player),
+        body: Column(children: [player]),
       ),
     );
   }
