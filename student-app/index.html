@@ -7,17 +7,9 @@
 <title>KL Student</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<!-- PDF rendering (works in Android WebView, unlike native PDF) -->
+<!-- PDF + PPT(as-PDF) rendering — works in Android WebView. (PPTXjs/jQuery/D3
+     removed: PPT now converts to PDF on the server, so they're no longer needed.) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<!-- PPT rendering -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/meshesha/PPTXjs@master/css/pptxjs.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip-utils/0.1.0/jszip-utils.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/d3@3.5.17/d3.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/meshesha/PPTXjs@master/js/nv.d3.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/meshesha/PPTXjs@master/js/pptxjs.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/meshesha/PPTXjs@master/js/divs2slides.js"></script>
 <style>
 #pptx .slide{margin:0 auto 12px;border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.06)}
 #pptx{max-width:100%;overflow-x:auto}
@@ -220,6 +212,8 @@ function show(id,push=true){ if(window.speechSynthesis)speechSynthesis.cancel();
   document.querySelector('#'+id+' .body')?.scrollTo(0,0) }
 function pop(){ if(stack.length>1){stack.pop();show(stack[stack.length-1],false)} }
 function goTab(id){ stack.length=0; show(id); if(id==='years')loadYears(); else if(id==='home')loadHome(); else loadProfile(); }
+/* hardware back button (called from Flutter): step back through screens, or 'exit' at root */
+window.appBack = function(){ if(stack.length>1){ pop(); return 'back'; } return 'exit'; };
 /* ===== login ===== */
 document.getElementById('lserver').value = server();
 async function doLogin(){

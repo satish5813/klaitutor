@@ -113,18 +113,33 @@ class _WebShellState extends State<WebShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        top: true,
-        bottom: false,
-        child: Stack(
-          children: [
-            WebViewWidget(controller: _controller),
-            if (_loading)
-              const Center(
-                child: CircularProgressIndicator(color: Color(0xFFC8102E)),
-              ),
-          ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        // route the hardware back button through the in-app navigation;
+        // only exit the app when already at the root screen
+        try {
+          final r = await _controller
+              .runJavaScriptReturningResult("window.appBack ? window.appBack() : 'exit'");
+          if (r.toString().contains('exit')) SystemNavigator.pop();
+        } catch (_) {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        body: SafeArea(
+          top: true,
+          bottom: false,
+          child: Stack(
+            children: [
+              WebViewWidget(controller: _controller),
+              if (_loading)
+                const Center(
+                  child: CircularProgressIndicator(color: Color(0xFFC8102E)),
+                ),
+            ],
+          ),
         ),
       ),
     );
