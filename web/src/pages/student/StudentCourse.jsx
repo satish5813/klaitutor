@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { api } from '../../lib/api'
 import ContentViewer from './ContentViewer'
+import AiTutor from './AiTutor'
 
 const ICON = { youtube: '🎬', pdf: '📄', ppt: '📊', infographic: '🖼️', quiz: '🏆', notes: '📝', csv: '🗒️', mindmap: '🧠' }
 const LABEL = { youtube: 'Video lecture', pdf: 'Report (PDF)', ppt: 'Slides (PPT)', infographic: 'Infographic', quiz: 'Quiz', notes: 'Notes', csv: 'Data', mindmap: 'Mind map' }
@@ -80,6 +81,7 @@ export default function StudentCourse() {
                                     ))}
                                   </div>
                                 )}
+                              <AiTutor sessionId={s.id} title={s.title} />
                             </div>
                           )}
                         </div>
